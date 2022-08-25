@@ -1,3 +1,4 @@
+#мпортируем все необходимое
 from flask import Flask, request, render_template, send_from_directory
 from functions import load_all_post, search_post
 import json
@@ -6,21 +7,28 @@ import logging
 
 logging.basicConfig(level=logging.ERROR)
 
+#загрузка базы JSON с постами
 POST_PATH = "posts.json"
 posts = load_all_post(POST_PATH)
+
+#Путь к хранению загруженных фото
 UPLOAD_FOLDER = "../uploads/images/"
+
+#Форматы файлов, которые можно загружать
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 
 app = Flask(__name__)
 
-
 @app.route("/", methods=['GET', "POST"])
 def page_index():
+    '''Начальная страница с доступом к поиску и загрузки новых постов'''
     return render_template("index.html")
 
 
 @app.route("/post_list")
 def page_tag():
+    '''Отображает результат поиска'''
     s = request.args['s']
     items = search_post(s, posts)
     logging.info("Выполнен поиск")
@@ -29,12 +37,13 @@ def page_tag():
 
 @app.route("/post_form", methods=["GET", "POST"])
 def page_post_form():
+    '''Показывает страницу для загрузки поста'''
     return render_template("post_form.html")
 
 
 @app.route("/post_uploaded", methods=["POST"])
 def page_post_upload():
-    """ Эта вьюшка обрабатывает форму"""
+    '''Загружает и обрабатывает пост в приложение'''
     if request.files.get("pic") and request.form["content"]:
         picture = request.files.get("pic")
         content = request.form["content"]
@@ -55,6 +64,7 @@ def page_post_upload():
 
 @app.route("/uploads/<path:path>")
 def static_dir(path):
+    '''Доступ к папке с картинками'''
     return send_from_directory("uploads", path)
 
 
