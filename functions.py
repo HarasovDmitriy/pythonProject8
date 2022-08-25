@@ -1,6 +1,10 @@
 import json
 
+from flask import Flask, request, render_template, send_from_directory
+from pathlib import Path
 from Class import User
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+UPLOAD_FOLDER = "../uploads/images/"
 
 def load_all_post(path: str) -> list[User]:
     '''возвращает все посты'''
@@ -16,6 +20,22 @@ def load_all_post(path: str) -> list[User]:
         arr.append(User(pic, content))
 
     return arr
+
+def upload_post_user(picture, content):
+    if request.files.get("pic") and request.form["content"]:
+        picture = request.files.get("pic")
+        content = request.form["content"]
+        filename = picture.filename
+        extension = filename.split(".")[-1]
+        if extension in ALLOWED_EXTENSIONS:
+            picture.save(f"./uploads/images/{filename}")
+            path = Path('posts.json')
+            data = json.loads(path.read_text(encoding='utf-8'))
+            data.append({'pic': f'{UPLOAD_FOLDER}{filename}', 'content': content})
+            path.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8', )
+            return render_template("post_uploaded.html")
+        return f"Тип файлов {extension} не поддерживается"
+
 
 
 
